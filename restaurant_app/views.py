@@ -35,8 +35,7 @@ class RestaurantViewSet(viewsets.ModelViewSet):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
 
-        # Check if the authenticated user is the owner and has the "OWNER" role
-        if instance.owner == user and user.role == "OWNER":
+        if  user.role == "OWNER":
             request.data['owner'] = user.id
 
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -49,27 +48,84 @@ class RestaurantViewSet(viewsets.ModelViewSet):
         
     def get_queryset(self):
         user = self.request.user
-        return Restaurant.objects.filter(owner=user)
+        if user.role == "OWNER":
+            return Restaurant.objects.filter(owner=user)
+        else:
+            return Restaurant.objects.all()
 
 class MenuViewSet(viewsets.ModelViewSet):
     queryset = Menu.objects.all()
     serializer_class = MenuSerializer
     permission_classes = [IsAuthenticated]
 
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        if user.role == "OWNER":
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response("You are not allowed to create a menu for this restaurant.", status=status.HTTP_403_FORBIDDEN)
+
+    def update(self, request, *args, **kwargs):
+        user = request.user
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        if user.role == "OWNER":
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response("You are not allowed to update this menu.", status=status.HTTP_403_FORBIDDEN)
+
     def get_queryset(self):
         user = self.request.user
-        return Menu.objects.filter(restaurant__owner=user)
+        if user.role == "OWNER":
+            return Menu.objects.filter(restaurant__owner=user)
+        else:
+            return Menu.objects.all()
 
 class MenuItemViewSet(viewsets.ModelViewSet):
     queryset = MenuItem.objects.all()
     serializer_class = MenuItemSerializer
     permission_classes = [IsAuthenticated]
 
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        if user.role == "OWNER":
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response("You are not allowed to create an item for this menu.", status=status.HTTP_403_FORBIDDEN)
+
+    def update(self, request, *args, **kwargs):
+        user = request.user
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        if user.role == "OWNER":
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response("You are not allowed to update this item.", status=status.HTTP_403_FORBIDDEN)
+
     def get_queryset(self):
         user = self.request.user
-        return MenuItem.objects.filter(menu__restaurant__owner=user)
-    
-
+        if user.role == "OWNER":
+            return MenuItem.objects.filter(menu__restaurant__owner=user)
+        else:
+            return MenuItem.objects.all()
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
