@@ -9,7 +9,7 @@ from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 
 
-router.register('', UserViewSet)
+router.register('', UserViewSet,basename="registration")
 urlpatterns = [
     re_path(r'^token/$', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
