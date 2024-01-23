@@ -18,3 +18,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
+    def get_permissions(self):
+        if self.action == 'create':
+            return []
+        return [permissions.IsAuthenticated()] 
