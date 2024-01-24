@@ -7,8 +7,6 @@ class RestaurantSerializer(serializers.ModelSerializer):
         model = Restaurant
         fields = '__all__'
        
-
-
 class MenuSerializer(serializers.ModelSerializer):
     class Meta:
         model = Menu
@@ -30,11 +28,10 @@ class MenuItemSerializer(serializers.ModelSerializer):
 #         return total_amount
 
 class OrderSerializer(serializers.ModelSerializer):
-    # order_items = OrderItemSerializer(many=True, read_only=True)
-
     class Meta:
         model = Order
         fields = '__all__'
+        read_only_fields = ['total_price']
 
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
