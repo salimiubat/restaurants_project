@@ -10,6 +10,9 @@ from .serializer import (
     OrderSerializer,
     PaymentSerializer
 )
+import stripe
+
+from stripesetting.models import StripePayment
 from rest_framework.response import Response
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -137,11 +140,61 @@ class OrderViewSet(viewsets.ModelViewSet):
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
+
     @action(methods=["GET"], detail=False, url_path="payable")
     def get_payable(self, request):
         user = request.user
         payable_orders = Order.objects.filter(user=user, is_paid=False)
         serialized_orders = OrderSerializer(payable_orders, many=True).data
-        
         return Response(serialized_orders)
-  
+    
+    @action(methods=["POST"], detail=False, url_path="pay_stripe")
+    def pay_stripe(self, request, *args, **kwargs):
+        try:
+            api_key = StripePayment.objects.first().api_key
+
+            total_amount = request.data.get("amount")
+            stripe.api_key = api_key
+            success_url = f'http://127.0.0.1:8000/?total_payable={total_amount}'
+            cancel_url = 'http://127.0.0.1:8000/api/restaurant/payments/payable/'
+
+            line_items_data = [
+                {
+                    "price_data": {
+                        "currency": "usd",
+                        "unit_amount": int(float(total_amount) * 100),
+                        "product_data": {
+                            "name": "Your Bill",
+                        },
+                    },
+                    "quantity": 1,
+                }]
+            session_data = stripe.checkout.Session.create(
+                payment_method_types=["card"],
+                line_items=line_items_data,
+                mode="payment",
+                success_url=success_url,
+                cancel_url=cancel_url,
+            )
+
+            if session_data:
+                # Assuming you have the order_id in your request data
+                order_id = request.data.get("order_id")
+
+                # Update Payment model
+                payment = Payment.objects.create(order_id=order_id, payment_status=True)
+
+                # Update Order model
+                order = Order.objects.get(id=order_id)
+                order.is_paid = True
+                order.save()
+
+                return Response(
+                    {
+                        "checkout_url": session_data.url,
+                        "session_data": session_data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
