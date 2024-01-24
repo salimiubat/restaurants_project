@@ -1,6 +1,6 @@
 # views.py
 from rest_framework import viewsets,status
-from .models import Restaurant, Menu, MenuItem, Order, OrderItem, Payment
+from .models import *
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from .serializer import (
@@ -8,7 +8,8 @@ from .serializer import (
     MenuSerializer,
     MenuItemSerializer,
     OrderSerializer,
-    PaymentSerializer
+    PaymentSerializer,
+    # OrderItemSerializer
 )
 import stripe
 
@@ -137,6 +138,11 @@ class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
 
 
+# class OrderItemViewSet(viewsets.ModelViewSet):
+#     queryset = OrderItem.objects.all()
+#     serializer_class = OrderItemSerializer
+
+
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
@@ -153,7 +159,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
         try:
             api_key = StripePayment.objects.first().api_key
 
-            total_amount = request.data.get("amount")
+            total_amount = request.data.get("amount")  #it will comes from payable in frontend
             stripe.api_key = api_key
             success_url = f'http://127.0.0.1:8000/?total_payable={total_amount}'
             cancel_url = 'http://127.0.0.1:8000/api/restaurant/payments/payable/'
@@ -178,17 +184,11 @@ class PaymentViewSet(viewsets.ModelViewSet):
             )
 
             if session_data:
-                # Assuming you have the order_id in your request data
                 order_id = request.data.get("order_id")
-
-                # Update Payment model
                 payment = Payment.objects.create(order_id=order_id, payment_status=True)
-
-                # Update Order model
                 order = Order.objects.get(id=order_id)
                 order.is_paid = True
                 order.save()
-
                 return Response(
                     {
                         "checkout_url": session_data.url,

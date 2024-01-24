@@ -28,16 +28,17 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = CustomUserSerializer(data=request.data)
 
         if role != 'OWNER':
-            serializer.is_valid()
+            serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response({'message': 'Employee has been created '}, status=status.HTTP_201_CREATED)
+        else:
 
-        request.data['is_staff'] = True
-        request.data['is_superuser'] = True
+            request.data['is_staff'] = True
+            request.data['is_superuser'] = True
 
-        serializer.is_valid(raise_exception=True)
+            serializer.is_valid(raise_exception=True)
 
-        serializer.save()
+            serializer.save()
 
         return Response({'message': 'Owner and Superuser created successfully'}, status=status.HTTP_201_CREATED)
     
