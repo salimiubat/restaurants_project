@@ -13,7 +13,7 @@ router = DefaultRouter()
 router.register(r'restaurants', RestaurantViewSet, basename='restaurant')
 router.register(r'menus', MenuViewSet, basename='menu')
 router.register(r'items', MenuItemViewSet, basename='item')
-router.register(r'orders', OrderViewSet)
+router.register(r'orders', OrderViewSet,basename="orders")
 router.register(r'payments', PaymentViewSet)
 
 urlpatterns = [

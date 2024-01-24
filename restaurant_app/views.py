@@ -2,7 +2,7 @@
 from rest_framework import viewsets,status
 from .models import Restaurant, Menu, MenuItem, Order, OrderItem, Payment
 from rest_framework.permissions import IsAuthenticated
-
+from rest_framework.decorators import action
 from .serializer import (
     RestaurantSerializer,
     MenuSerializer,
@@ -127,10 +127,21 @@ class MenuItemViewSet(viewsets.ModelViewSet):
         else:
             return MenuItem.objects.all()
 
+
+
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
 
+
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
+    @action(methods=["GET"], detail=False, url_path="payable")
+    def get_payable(self, request):
+        user = request.user
+        payable_orders = Order.objects.filter(user=user, is_paid=False)
+        serialized_orders = OrderSerializer(payable_orders, many=True).data
+        
+        return Response(serialized_orders)
+  

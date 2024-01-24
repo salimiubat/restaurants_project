@@ -23,4 +23,4 @@ class OrderItemAdmin(admin.ModelAdmin):
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ['order', 'stripe_token']
+    list_display = ['order', 'payment_status']

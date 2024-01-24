@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'restaurant_app',
+    "stripesetting",
     'rest_framework'
 ]
 AUTH_USER_MODEL = 'users.User'

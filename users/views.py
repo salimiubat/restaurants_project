@@ -22,3 +22,22 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             return []
         return [permissions.IsAuthenticated()] 
+    
+    def create(self, request, *args, **kwargs):
+        role = request.data.get("role")
+        serializer = CustomUserSerializer(data=request.data)
+
+        if role != 'OWNER':
+            serializer.is_valid()
+            serializer.save()
+            return Response({'message': 'Employee has been created '}, status=status.HTTP_201_CREATED)
+
+        request.data['is_staff'] = True
+        request.data['is_superuser'] = True
+
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response({'message': 'Owner and Superuser created successfully'}, status=status.HTTP_201_CREATED)
+    

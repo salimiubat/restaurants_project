@@ -50,7 +50,7 @@ class OrderItem(models.Model):
 # Payment Model (assuming Stripe token is used for payment)
 class Payment(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE)
-    stripe_token = models.CharField(max_length=255)  # This should store the Stripe token
+    payment_status = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Payment for Order {self.order.id}"
