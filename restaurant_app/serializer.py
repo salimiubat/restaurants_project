@@ -1,4 +1,3 @@
-# serializers.py
 from rest_framework import serializers
 from .models import *
 
@@ -16,16 +15,6 @@ class MenuItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = MenuItem
         fields = '__all__'
-
-# class OrderItemSerializer(serializers.ModelSerializer):
-#     total_amount = serializers.SerializerMethodField()
-
-#     class Meta:
-#         model = OrderItem
-#         fields = '__all__'
-#     def get_total_amount(self, obj):
-#         total_amount = obj.menu_item.price * obj.quantity
-#         return total_amount
 
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
